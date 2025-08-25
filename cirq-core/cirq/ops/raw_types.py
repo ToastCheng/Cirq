@@ -483,10 +483,28 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
 
     def _mul_with_qubits(self, qubits: tuple[cirq.Qid, ...], other):
         """cirq.GateOperation.__mul__ delegates to this method."""
+        if isinstance(other, raw_types.Operation):
+            # Try using pauli expansion if both operations have single-item expansions
+            pauli_expansion_self = protocols.pauli_expansion(self.on(*qubits), None)
+            pauli_expansion_other = protocols.pauli_expansion(other, None)
+            
+            if (pauli_expansion_self is not None and len(pauli_expansion_self) == 1 and
+                pauli_expansion_other is not None and len(pauli_expansion_other) == 1):
+                from cirq.ops.pauli_string import PauliString
+                return PauliString(self.on(*qubits)) * PauliString(other)
         return NotImplemented
 
     def _rmul_with_qubits(self, qubits: tuple[cirq.Qid, ...], other):
         """cirq.GateOperation.__rmul__ delegates to this method."""
+        if isinstance(other, raw_types.Operation):
+            # Try using pauli expansion if both operations have single-item expansions
+            pauli_expansion_self = protocols.pauli_expansion(self.on(*qubits), None)
+            pauli_expansion_other = protocols.pauli_expansion(other, None)
+            
+            if (pauli_expansion_self is not None and len(pauli_expansion_self) == 1 and
+                pauli_expansion_other is not None and len(pauli_expansion_other) == 1):
+                from cirq.ops.pauli_string import PauliString
+                return PauliString(other) * PauliString(self.on(*qubits))
         return NotImplemented
 
     def _json_dict_(self) -> dict[str, Any]:
