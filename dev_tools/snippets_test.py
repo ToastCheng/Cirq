@@ -82,11 +82,7 @@ def test_can_run_readme_code_snippets():
 
 def find_docs_code_snippets_paths() -> Iterator[str]:
     for filename in DOCS_FOLDER.rglob('*.md'):
-        # Skip files under 'hardware'
-        # TODO: #7787 - revisit which of these can be fixed and enabled later.
-        path = str(filename.relative_to(DOCS_FOLDER))
-        if not path.startswith('hardware'):
-            yield path
+        yield str(filename.relative_to(DOCS_FOLDER))
 
 
 @pytest.mark.parametrize('path', find_docs_code_snippets_paths())
@@ -264,6 +260,7 @@ def assert_code_snippets_run_in_sequence(snippets: list[tuple[str, int]], assume
     if assume_import:
         exec('import cirq', state)
         exec('import cirq_google', state)
+        exec('import cirq_pasqal', state)
         exec('from unittest.mock import MagicMock', state)
         exec('import sympy', state)
 

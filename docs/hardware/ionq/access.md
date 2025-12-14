@@ -31,6 +31,10 @@ export IONQ_API_KEY=tomyheart
 Once this variable is set, the `ionq.Service()` will look for it automatically
 in the environment:
 
+<!---test_substitution
+ionq\.Service()
+MagicMock()
+--->
 ```python
 import cirq_ionq as ionq
 

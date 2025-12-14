@@ -7,6 +7,11 @@ periodically.
 
 In this section, we assume a `cirq_ionq.Service` object has been instantiated and is
 called `service` and `cirq` and `cirq_ionq` have been imported:
+
+<!---test_substitution
+ionq\.Service()
+MagicMock()
+--->
 ```python
 import cirq
 import cirq_ionq as ionq
