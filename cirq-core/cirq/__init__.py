@@ -358,6 +358,7 @@ from cirq.transformers import (
     decompose_two_qubit_interaction_into_four_fsim_gates as decompose_two_qubit_interaction_into_four_fsim_gates,  # noqa: E501
     defer_measurements as defer_measurements,
     dephase_measurements as dephase_measurements,
+    drop_diagonal_before_measurement as drop_diagonal_before_measurement,
     drop_empty_moments as drop_empty_moments,
     drop_negligible_operations as drop_negligible_operations,
     drop_terminal_measurements as drop_terminal_measurements,
@@ -509,6 +510,7 @@ from cirq.study import (
     flatten_with_sweep as flatten_with_sweep,
     ResultDict as ResultDict,
     Linspace as Linspace,
+    list_of_dicts_to_zip as list_of_dicts_to_zip,
     ListSweep as ListSweep,
     ParamDictType as ParamDictType,
     ParamMappingType as ParamMappingType,
