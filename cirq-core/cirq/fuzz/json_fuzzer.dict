@@ -1,0 +1,33 @@
+
+# JSON Syntax
+"{"
+"}"
+"["
+"]"
+":"
+","
+"true"
+"false"
+"null"
+
+# Cirq Serialization Keys
+"cirq_type"
+"qubits"
+"operations"
+"moments"
+"device"
+"gates"
+
+# Common Cirq Types
+"GateOperation"
+"ParallelGate"
+"Circuit"
+"LineQubit"
+"GridQubit"
+"NamedQubit"
+"XPowGate"
+"YPowGate"
+"ZPowGate"
+"HPowGate"
+"CNOT"
+"MeasurementGate"
