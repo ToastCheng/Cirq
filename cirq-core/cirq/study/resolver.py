@@ -155,8 +155,10 @@ class ParamResolver:
                 return v
             if isinstance(param_value, str):
                 param_value = sympy.Symbol(param_value)
-            elif not isinstance(param_value, sympy.Basic):
-                return original_value
+            else:
+                from cirq.protocols.resolve_parameters import is_parameterized
+                if not is_parameterized(param_value):
+                    return original_value
             if recursive:
                 param_value = self._value_of_recursive(value)
             return param_value
@@ -166,7 +168,8 @@ class ParamResolver:
         if v is not NotImplemented:
             return v
 
-        if not isinstance(value, sympy.Basic):
+        from cirq.protocols.resolve_parameters import is_parameterized
+        if not is_parameterized(value):
             # No known way to resolve this variable, return unchanged.
             return value
 
@@ -193,6 +196,20 @@ class ParamResolver:
             if isinstance(base, numbers.Number):
                 return np.float_power(cast(complex, base), cast(complex, exponent))
             return np.power(cast(complex, base), cast(complex, exponent))
+
+        from cirq.value.type_alias import _SYMENGINE_AVAILABLE
+        if _SYMENGINE_AVAILABLE:
+            import symengine
+            if isinstance(value, symengine.Basic):
+                if not recursive:
+                    v = value.subs(self._param_dict)
+                    if v.free_symbols:
+                        return v
+                    elif sympy.im(v):
+                        return complex(v)
+                    else:
+                        return float(v)
+                return self._value_of_recursive(value)
 
         # Input is either a sympy formula or the dictionary maps to a
         # formula.  Use sympy to resolve the value.
@@ -302,7 +319,8 @@ class ParamResolver:
 def _resolve_value(val: Any) -> Any:
     if isinstance(val, float) or val is None:
         return val
-    if isinstance(val, numbers.Number) and not isinstance(val, sympy.Basic):
+    from cirq.protocols.resolve_parameters import is_parameterized
+    if isinstance(val, numbers.Number) and not is_parameterized(val):
         return val
     if isinstance(val, sympy_numbers.IntegerConstant):
         return val.p

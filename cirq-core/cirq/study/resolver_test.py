@@ -344,3 +344,18 @@ def test_repr() -> None:
     cirq.testing.assert_equivalent_repr(
         cirq.ParamResolver({sympy.Symbol('a'): sympy.Symbol('b') + 1})
     )
+
+
+def test_symengine_resolution() -> None:
+    from cirq.value.type_alias import _SYMENGINE_AVAILABLE
+    if not _SYMENGINE_AVAILABLE:
+        pytest.skip("symengine not available")
+
+    import symengine
+    r = cirq.ParamResolver({'a': 0.5, 'b': 0.1, 'c': 1 + 1j})
+
+    assert r.value_of(2 * symengine.pi) == 2 * np.pi
+    assert r.value_of(4 ** symengine.Symbol('a') + symengine.Symbol('b') * 10) == 3
+    assert r.value_of(symengine.I * symengine.pi) == np.pi * 1j
+    assert r.value_of(symengine.Symbol('a') * 3) == 1.5
+    assert r.value_of(symengine.Symbol('b') / 0.1 - symengine.Symbol('a')) == 0.5
