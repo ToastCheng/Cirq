@@ -18,6 +18,7 @@ from typing import overload, TYPE_CHECKING
 
 import numpy as np
 import sympy
+from cirq import protocols
 
 if TYPE_CHECKING:
     from cirq.value import type_alias
@@ -99,7 +100,7 @@ def canonicalize_half_turns(half_turns: sympy.Expr) -> sympy.Expr:
 
 def canonicalize_half_turns(half_turns: type_alias.TParamVal) -> type_alias.TParamVal:
     """Wraps the input into the range (-1, +1]."""
-    if isinstance(half_turns, sympy.Expr):
+    if protocols.is_parameterized(half_turns):
         if not half_turns.is_constant():
             return half_turns
         half_turns = float(half_turns)

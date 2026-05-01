@@ -266,7 +266,7 @@ class ThreeQubitDiagonalGate(raw_types.Gate):
         return protocols.CircuitDiagramInfo((diag_str, '#2', '#3'))
 
     def __pow__(self, exponent: Any) -> ThreeQubitDiagonalGate:
-        if not isinstance(exponent, (int, float, sympy.Basic)):
+        if not (isinstance(exponent, (int, float)) or protocols.is_parameterized(exponent)):
             return NotImplemented
         return ThreeQubitDiagonalGate(
             [protocols.mul(angle, exponent, NotImplemented) for angle in self._diag_angles_radians]

@@ -95,7 +95,7 @@ class PhasedXZGate(raw_types.Gate):
         a = self.axis_phase_exponent
 
         # Canonicalize X exponent into (-1, +1].
-        if not isinstance(x, sympy.Expr):
+        if not protocols.is_parameterized(x):
             x %= 2
             if x > 1.0:
                 x -= 2
@@ -109,13 +109,13 @@ class PhasedXZGate(raw_types.Gate):
             z = 0.0
 
         # Canonicalize Z exponent into (-1, +1].
-        if not isinstance(z, sympy.Expr):
+        if not protocols.is_parameterized(z):
             z %= 2
             if z > 1.0:
                 z -= 2
 
         # Canonicalize axis phase exponent into (-0.5, +0.5].
-        if not isinstance(a, sympy.Expr):
+        if not protocols.is_parameterized(a):
             a %= 2
             if a > 1.0:
                 a -= 2

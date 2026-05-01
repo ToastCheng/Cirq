@@ -278,7 +278,7 @@ class EigenGate(raw_types.Gate):
         `PhasedISwapPowGate`, this must be overridden to provide the additional
         fields that affect the eigenspaces.
         """
-        symbolic = lambda x: isinstance(x, sympy.Expr) and x.free_symbols
+        symbolic = lambda x: hasattr(x, 'free_symbols') and x.free_symbols
         f = lambda x: x if symbolic(x) else float(x)
         shifts = (f(self._exponent) * f(self._global_shift + e) for e in self._eigen_shifts())
         return tuple(s if symbolic(s) else value.PeriodicValue(f(s), 2) for s in shifts)

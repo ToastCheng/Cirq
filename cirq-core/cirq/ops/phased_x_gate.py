@@ -236,7 +236,7 @@ class PhasedXPowGate(raw_types.Gate):
     @property
     def _canonical_exponent(self):
         period = self._period()
-        if not period or isinstance(self._exponent, sympy.Basic):
+        if not period or protocols.is_parameterized(self._exponent):
             return self._exponent
 
         return self._exponent % period

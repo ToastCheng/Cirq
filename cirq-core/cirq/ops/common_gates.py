@@ -1678,7 +1678,7 @@ def _phased_x_or_pauli_gate(
     exponent: float | sympy.Expr, phase_exponent: float | sympy.Expr
 ) -> cirq.PhasedXPowGate | cirq.XPowGate | cirq.YPowGate:
     """Return PhasedXPowGate or X or Y gate if equivalent at the given phase_exponent."""
-    if not isinstance(phase_exponent, sympy.Expr) or phase_exponent.is_constant():
+    if not protocols.is_parameterized(phase_exponent) or phase_exponent.is_constant():
         half_turns = value.canonicalize_half_turns(float(phase_exponent))
         match half_turns:
             case 0.0:

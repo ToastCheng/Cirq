@@ -135,7 +135,7 @@ class PhaseGradientGate(raw_types.Gate):
             yield cirq.Z(q) ** (self.exponent / 2**i)
 
     def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs):
-        if isinstance(self.exponent, sympy.Basic):
+        if cirq.is_parameterized(self.exponent):
             return NotImplemented
 
         n = int(np.prod([args.target_tensor.shape[k] for k in args.axes], dtype=np.int64))
@@ -152,7 +152,7 @@ class PhaseGradientGate(raw_types.Gate):
         return PhaseGradientGate(num_qubits=self._num_qubits, exponent=new_exponent)
 
     def _unitary_(self):
-        if isinstance(self.exponent, sympy.Basic):
+        if cirq.is_parameterized(self.exponent):
             return NotImplemented
 
         size = 1 << self._num_qubits

@@ -91,7 +91,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         """
         self._pauli_mask = _as_pauli_mask(pauli_mask)
         self._coefficient: complex | sympy.Expr = (
-            coefficient if isinstance(coefficient, sympy.Expr) else complex(coefficient)
+            coefficient if protocols.is_parameterized(coefficient) else complex(coefficient)
         )
         if type(self) != MutableDensePauliString:
             self._pauli_mask = np.copy(self.pauli_mask)
@@ -230,14 +230,14 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         return type(self)(coefficient=-self.coefficient, pauli_mask=self.pauli_mask)
 
     def __truediv__(self, other):
-        if isinstance(other, (sympy.Basic, numbers.Number)):
+        if (isinstance(other, numbers.Number) or protocols.is_parameterized(other)):
             return self.__mul__(1 / other)
 
         return NotImplemented
 
     def __mul__(self, other):
         concrete_class = type(self)
-        if isinstance(other, (sympy.Basic, numbers.Number)):
+        if (isinstance(other, numbers.Number) or protocols.is_parameterized(other)):
             new_coef = protocols.mul(self.coefficient, other, default=None)
             if new_coef is None:
                 return NotImplemented
@@ -261,7 +261,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         return NotImplemented
 
     def __rmul__(self, other):
-        if isinstance(other, (sympy.Basic, numbers.Number)):
+        if (isinstance(other, numbers.Number) or protocols.is_parameterized(other)):
             return self.__mul__(other)
 
         if other := _try_interpret_as_dps(other):
@@ -287,7 +287,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     def __abs__(self) -> Self:
         coef = self.coefficient
         return type(self)(
-            coefficient=sympy.Abs(coef) if isinstance(coef, sympy.Expr) else abs(coef),
+            coefficient=sympy.Abs(coef) if protocols.is_parameterized(coef) else abs(coef),
             pauli_mask=self.pauli_mask,
         )
 
@@ -479,16 +479,16 @@ class MutableDensePauliString(BaseDensePauliString):
         raise TypeError(f'indices must be integers or slices, not {type(key)}')
 
     def __itruediv__(self, other):
-        if isinstance(other, (sympy.Basic, numbers.Number)):
+        if (isinstance(other, numbers.Number) or protocols.is_parameterized(other)):
             return self.__imul__(1 / other)
         return NotImplemented
 
     def __imul__(self, other):
-        if isinstance(other, (sympy.Basic, numbers.Number)):
+        if (isinstance(other, numbers.Number) or protocols.is_parameterized(other)):
             new_coef = protocols.mul(self.coefficient, other, default=None)
             if new_coef is None:
                 return NotImplemented
-            self._coefficient = new_coef if isinstance(new_coef, sympy.Basic) else complex(new_coef)
+            self._coefficient = new_coef if protocols.is_parameterized(new_coef) else complex(new_coef)
             return self
 
         if (other_dps := _try_interpret_as_dps(other)) is not None:

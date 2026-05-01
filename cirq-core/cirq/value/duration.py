@@ -151,7 +151,7 @@ class Duration:
         )
 
     def __mul__(self, other) -> Duration:
-        if not isinstance(other, (int, float, sympy.Expr)):
+        if not (isinstance(other, (int, float)) or protocols.is_parameterized(other)):
             return NotImplemented
         if other == 0:
             return _duration_from_time_vals([0] * 4)
@@ -161,7 +161,7 @@ class Duration:
         return self.__mul__(other)
 
     def __truediv__(self, other) -> Duration | float:
-        if isinstance(other, (int, float, sympy.Expr)):
+        if (isinstance(other, (int, float)) or protocols.is_parameterized(other)):
             new_time_vals = [x / other for x in self._time_vals]
             return _duration_from_time_vals(new_time_vals)
 

@@ -104,7 +104,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
                 c = value.MeasurementKey.parse_serialized(c)
             if isinstance(c, value.MeasurementKey):
                 c = value.KeyCondition(c)
-            if isinstance(c, sympy.Basic):
+            if protocols.is_parameterized(c):
                 c = value.SympyCondition(c)
             conds.append(c)
         self._conditions: tuple[cirq.Condition, ...] = tuple(conds)

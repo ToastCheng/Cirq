@@ -139,7 +139,7 @@ class DiagonalGate(raw_types.Gate):
         )
 
     def __pow__(self, exponent: Any) -> DiagonalGate:
-        if not isinstance(exponent, (int, float, sympy.Basic)):
+        if not (isinstance(exponent, (int, float)) or protocols.is_parameterized(exponent)):
             return NotImplemented
         angles = []
         for angle in self._diag_angles_radians:

@@ -76,7 +76,7 @@ class IdentityGate(raw_types.Gate):
         return len(self._qid_shape)
 
     def __pow__(self, power: Any) -> Any:
-        if isinstance(power, (numbers.Complex, sympy.Basic)):
+        if isinstance(power, numbers.Complex) or protocols.is_parameterized(power):
             return self
         return NotImplemented
 
