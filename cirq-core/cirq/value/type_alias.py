@@ -14,19 +14,33 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 import sympy
+
+try:
+    import symengine
+    _SYMENGINE_AVAILABLE = True
+except ImportError:
+    _SYMENGINE_AVAILABLE = False
 
 from cirq._doc import document
 
 """Supply aliases for commonly used types.
 """
 
-TParamKey = str | sympy.Expr
+if _SYMENGINE_AVAILABLE:
+    TParamKey = str | sympy.Expr | symengine.Basic
+    TParamVal = float | sympy.Expr | symengine.Basic
+    TParamValComplex = complex | np.number | sympy.Expr | symengine.Basic
+else:
+    TParamKey = str | sympy.Expr
+    TParamVal = float | sympy.Expr
+    TParamValComplex = complex | np.number | sympy.Expr
+
 document(TParamKey, """A parameter that a parameter resolver may map to a value.""")
 
-TParamVal = float | sympy.Expr
 document(TParamVal, """A value that a parameter resolver may return for a parameter.""")
 
-TParamValComplex = complex | np.number | sympy.Expr
 document(TParamValComplex, """A complex value that parameter resolvers may use for parameters.""")

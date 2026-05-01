@@ -22,6 +22,10 @@ import sympy
 
 from cirq import study
 from cirq._doc import doc_private
+from cirq.value.type_alias import _SYMENGINE_AVAILABLE
+
+if _SYMENGINE_AVAILABLE:
+    import symengine
 
 if TYPE_CHECKING:
     import cirq
@@ -79,6 +83,8 @@ def is_parameterized(val: Any) -> bool:
     """
     if isinstance(val, sympy.Basic):
         return True
+    if _SYMENGINE_AVAILABLE and isinstance(val, symengine.Basic):
+        return True
     if isinstance(val, numbers.Number):
         return False
     if isinstance(val, (list, tuple)):
@@ -107,6 +113,8 @@ def parameter_names(val: Any) -> Set[str]:
     """
     if isinstance(val, sympy.Basic):
         return {cast(sympy.Symbol, symbol).name for symbol in val.free_symbols}
+    if _SYMENGINE_AVAILABLE and isinstance(val, symengine.Basic):
+        return {symbol.name for symbol in val.free_symbols}
     if isinstance(val, numbers.Number):
         return set()
     if isinstance(val, (list, tuple)):
