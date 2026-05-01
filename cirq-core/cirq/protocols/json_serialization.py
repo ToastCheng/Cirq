@@ -30,6 +30,10 @@ import pandas as pd
 import sympy
 
 from cirq._doc import doc_private
+from cirq.value.type_alias import _SYMENGINE_AVAILABLE
+
+if _SYMENGINE_AVAILABLE:
+    import symengine
 
 ObjectFactory = type | Callable[..., Any]
 
@@ -234,6 +238,10 @@ class CirqEncoder(json.JSONEncoder):
         # Sympy object? (Must come before general number checks.)
         # TODO: More support for sympy
         # Github issue: https://github.com/quantumlib/Cirq/issues/2014
+
+        if _SYMENGINE_AVAILABLE and isinstance(o, symengine.Basic):
+            # Convert to sympy object for deterministic, backward-compatible serialization
+            o = sympy.sympify(o)
 
         if isinstance(o, sympy.Symbol):
             return {'cirq_type': 'sympy.Symbol', 'name': o.name}

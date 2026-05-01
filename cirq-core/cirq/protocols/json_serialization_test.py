@@ -343,6 +343,37 @@ def test_sympy() -> None:
     assert_json_roundtrip_works(sympy.EulerGamma)
 
 
+def test_symengine() -> None:
+    from cirq.value.type_alias import _SYMENGINE_AVAILABLE
+
+    if not _SYMENGINE_AVAILABLE:
+        pytest.skip("symengine not available")
+        
+    import symengine
+    # Raw values.
+    assert_json_roundtrip_works(symengine.Symbol('theta'))
+    assert_json_roundtrip_works(symengine.Integer(5))
+    assert_json_roundtrip_works(symengine.Rational(2, 3))
+    assert_json_roundtrip_works(symengine.Float(1.1))
+
+    # Basic operations.
+    s = symengine.Symbol('s')
+    t = symengine.Symbol('t')
+    assert_json_roundtrip_works(t + s)
+    assert_json_roundtrip_works(t * s)
+    assert_json_roundtrip_works(t / s)
+    assert_json_roundtrip_works(t - s)
+    assert_json_roundtrip_works(t**s)
+
+    # Linear combinations.
+    assert_json_roundtrip_works(t * 2)
+    assert_json_roundtrip_works(4 * t + 3 * s + 2)
+
+    assert_json_roundtrip_works(symengine.pi)
+    assert_json_roundtrip_works(symengine.E)
+    assert_json_roundtrip_works(symengine.EulerGamma)
+
+
 class SBKImpl(cirq.SerializableByKey):
     """A test implementation of SerializableByKey."""
 
