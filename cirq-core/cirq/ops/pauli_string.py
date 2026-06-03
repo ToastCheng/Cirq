@@ -33,6 +33,7 @@ from typing import Any, cast, Generic, overload, TYPE_CHECKING, TypeVar, Union
 
 import numpy as np
 import sympy
+from scipy import sparse
 
 from cirq import _compat, linalg, protocols, qis, value
 from cirq._compat import deprecated
@@ -468,6 +469,33 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             raise NotImplementedError('Cannot express as matrix when parameterized')
         assert isinstance(self.coefficient, complex)
         return linalg.kron(self.coefficient, *[protocols.unitary(f) for f in factors])
+
+    def sparse_matrix(self, qubits: Iterable[TKey] | None = None) -> sparse.csr_matrix:
+        """Returns the sparse matrix of self in computational basis of qubits.
+
+        Args:
+            qubits: Ordered collection of qubits that determine the subspace
+                in which the matrix representation of the Pauli string is to
+                be computed. Qubits absent from `self.qubits` are acted on by
+                the identity. Defaults to `self.qubits`.
+
+        Returns:
+            A scipy.sparse.csr_matrix representing the Pauli string.
+
+        Raises:
+            NotImplementedError: If this PauliString is parameterized.
+        """
+        qubits = self.qubits if qubits is None else qubits
+        factors = [self.get(q, default=identity.I) for q in qubits]
+        if protocols.is_parameterized(self):
+            raise NotImplementedError('Cannot express as matrix when parameterized')
+        assert isinstance(self.coefficient, complex)
+        result = sparse.csr_matrix(np.ones((1, 1)) * self.coefficient, dtype=np.complex128)
+        for f in factors:
+            result = sparse.kron(
+                result, sparse.csr_matrix(protocols.unitary(f), dtype=np.complex128), format='csr'
+            )
+        return result
 
     def _has_unitary_(self) -> bool:
         if self._is_parameterized_():

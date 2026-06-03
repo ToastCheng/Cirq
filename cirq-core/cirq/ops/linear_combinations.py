@@ -21,6 +21,7 @@ from typing import Any, TYPE_CHECKING, Union
 
 import numpy as np
 import sympy
+from scipy.sparse import csr_matrix
 from sympy.logic.boolalg import And, Not, Or, Xor
 
 from cirq import linalg, protocols, qis, value
@@ -32,8 +33,6 @@ from cirq.ops.projector import ProjectorString
 from cirq.value.linear_dict import _format_terms
 
 if TYPE_CHECKING:
-    from scipy.sparse import csr_matrix
-
     import cirq
 
 UnitPauliStringT = frozenset[tuple[raw_types.Qid, pauli_gates.Pauli]]
@@ -587,6 +586,31 @@ class PauliSum:
         for vec, coeff in self._linear_dict.items():
             op = _pauli_string_from_unit(vec)
             result += coeff * op.matrix(qubits)
+        return result
+
+    def sparse_matrix(self, qubits: Iterable[raw_types.Qid] | None = None) -> csr_matrix:
+        """Returns the sparse matrix of this PauliSum in computational basis of qubits.
+
+        Args:
+            qubits: Ordered collection of qubits that determine the subspace
+                in which the matrix representation of the Pauli sum is to
+                be computed. If none is provided the default ordering of
+                `self.qubits` is used.  Qubits present in `qubits` but absent from
+                `self.qubits` are acted on by the identity.
+
+        Returns:
+            A scipy.sparse.csr_matrix representing the Pauli sum.
+        """
+        qubits = self.qubits if qubits is None else tuple(qubits)
+        result: csr_matrix | None = None
+        for vec, coeff in self._linear_dict.items():
+            op = _pauli_string_from_unit(vec)
+            term = coeff * op.sparse_matrix(qubits)
+            result = term if result is None else result + term
+        if result is None:
+            num_qubits = len(qubits)
+            num_dim = 2**num_qubits
+            return csr_matrix((num_dim, num_dim), dtype=np.complex128)
         return result
 
     def _has_unitary_(self) -> bool:
