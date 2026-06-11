@@ -632,6 +632,20 @@ class PauliSum:
         result.eliminate_zeros()
         return result
 
+    def sparse_matrix_naive(
+        self, qubits: Iterable[raw_types.Qid] | None = None
+    ) -> sparse.csr_matrix:
+        qubits = self.qubits if qubits is None else tuple(qubits)
+        result = None
+        for pstr in self:
+            term = pstr.sparse_matrix_naive(qubits)
+            result = term if result is None else result + term
+        if result is None:
+            n = len(qubits)
+            dim = 1 << n
+            return sparse.csr_matrix((dim, dim), dtype=np.complex128)
+        return result
+
     def _has_unitary_(self) -> bool:
         return linalg.is_unitary(self.matrix())
 

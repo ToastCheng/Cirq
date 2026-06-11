@@ -520,6 +520,17 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
         return sparse.coo_matrix((data, (rows, cols)), shape=(dim, dim)).tocsr()
 
+    def sparse_matrix_naive(self, qubits: Iterable[TKey] | None = None) -> sparse.csr_matrix:
+        qubits = self.qubits if qubits is None else tuple(qubits)
+
+        factors = [self.get(q, default=identity.I) for q in qubits]
+        result = sparse.csr_matrix(np.ones((1, 1)) * self.coefficient, dtype=np.complex128)
+        for f in factors:
+            result = sparse.kron(
+                result, sparse.csr_matrix(protocols.unitary(f), dtype=np.complex128), format='csr'
+            )
+        return result
+
     def _has_unitary_(self) -> bool:
         if self._is_parameterized_():
             return False
