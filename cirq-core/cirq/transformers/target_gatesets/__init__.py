@@ -22,6 +22,10 @@ from cirq.transformers.target_gatesets.compilation_target_gateset import (
 
 from cirq.transformers.target_gatesets.cz_gateset import CZTargetGateset as CZTargetGateset
 
+from cirq.transformers.target_gatesets.numerical_compilation_gateset import (
+    NumericalCompilationTargetGateset as NumericalCompilationTargetGateset,
+)
+
 from cirq.transformers.target_gatesets.sqrt_iswap_gateset import (
     SqrtIswapTargetGateset as SqrtIswapTargetGateset,
 )

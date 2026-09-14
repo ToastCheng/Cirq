@@ -177,6 +177,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'NamedQid': cirq.NamedQid,
         'NoIdentifierQubit': cirq.testing.NoIdentifierQubit,
         'NoiseModelFromNoiseProperties': NoiseModelFromNoiseProperties,
+        'NumericalCompilationTargetGateset': cirq.NumericalCompilationTargetGateset,
         'ObservableMeasuredResult': cirq.work.ObservableMeasuredResult,
         'OpIdentifier': cirq.OpIdentifier,
         'ParamResolver': cirq.ParamResolver,
