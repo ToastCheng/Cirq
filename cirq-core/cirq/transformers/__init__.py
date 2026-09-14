@@ -63,6 +63,7 @@ from cirq.transformers.target_gatesets import (
     create_transformer_with_kwargs as create_transformer_with_kwargs,
     CompilationTargetGateset as CompilationTargetGateset,
     CZTargetGateset as CZTargetGateset,
+    NumericalCompilationTargetGateset as NumericalCompilationTargetGateset,
     SqrtIswapTargetGateset as SqrtIswapTargetGateset,
     TwoQubitCompilationTargetGateset as TwoQubitCompilationTargetGateset,
 )

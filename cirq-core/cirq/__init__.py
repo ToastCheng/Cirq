@@ -390,6 +390,7 @@ from cirq.transformers import (
     merge_single_qubit_gates_to_phxz as merge_single_qubit_gates_to_phxz,
     merge_single_qubit_gates_to_phxz_symbolized as merge_single_qubit_gates_to_phxz_symbolized,
     merge_single_qubit_moments_to_phxz as merge_single_qubit_moments_to_phxz,
+    NumericalCompilationTargetGateset as NumericalCompilationTargetGateset,
     optimize_for_target_gateset as optimize_for_target_gateset,
     parameterized_2q_op_to_sqrt_iswap_operations as parameterized_2q_op_to_sqrt_iswap_operations,
     prepare_two_qubit_state_using_cz as prepare_two_qubit_state_using_cz,

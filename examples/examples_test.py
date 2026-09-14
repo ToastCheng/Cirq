@@ -32,6 +32,7 @@ import examples.simon_algorithm
 import examples.superdense_coding
 import examples.swap_networks
 import examples.two_qubit_gate_compilation
+import examples.two_qubit_numerical_gate_compilation
 from examples.shors_code import OneQubitShorsCode
 
 
@@ -320,3 +321,7 @@ def test_example_qec_single_qubit() -> None:
 def test_two_qubit_gate_compilation_example() -> None:
     plt.switch_backend('agg')
     examples.two_qubit_gate_compilation.main(samples=10, max_infidelity=0.3)
+
+
+def test_two_qubit_numerical_gate_compilation_example() -> None:
+    examples.two_qubit_numerical_gate_compilation.main()
