@@ -32,11 +32,11 @@ from types import NotImplementedType
 from typing import Any, cast, Generic, overload, TYPE_CHECKING, TypeVar, Union
 
 import numpy as np
-import sympy
 from scipy import sparse
 
 from cirq import _compat, linalg, protocols, qis, value
 from cirq._compat import deprecated
+from cirq._compat_symbolic import is_symbolic
 from cirq._doc import document
 from cirq._import import LazyLoader
 from cirq.ops import (
@@ -52,6 +52,8 @@ from cirq.ops import (
 )
 
 if TYPE_CHECKING:
+    import sympy
+
     import cirq
 
 # Lazy imports to break circular dependencies.
@@ -184,7 +186,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
         self._qubit_pauli_map: dict[TKey, cirq.Pauli] = qubit_pauli_map or {}
         self._coefficient: cirq.TParamValComplex | sympy.Expr = (
-            coefficient if isinstance(coefficient, sympy.Expr) else complex(coefficient)
+            coefficient if is_symbolic(coefficient) else complex(coefficient)
         )
         if contents:
             m = self.mutable_copy().inplace_left_multiply_by(contents).frozen()
@@ -1256,7 +1258,7 @@ class MutablePauliString(Generic[TKey]):
             ValueError: If the `pauli_int_dict` has integer values `v` not satisfying `1 <= v <= 3`.
         """
         self.coefficient: sympy.Expr | cirq.TParamValComplex = (
-            coefficient if isinstance(coefficient, sympy.Expr) else complex(coefficient)
+            coefficient if is_symbolic(coefficient) else complex(coefficient)
         )
         if pauli_int_dict is not None:
             for v in pauli_int_dict.values():

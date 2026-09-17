@@ -33,6 +33,7 @@ import numpy as np
 import sympy
 
 from cirq import protocols
+from cirq._compat_symbolic import is_symbolic, is_symengine_expr, symengine_number_value
 
 if TYPE_CHECKING:
     import cirq
@@ -57,6 +58,8 @@ class _SympyPrinter(sympy.printing.str.StrPrinter):
 
 
 def _format_coefficient(format_spec: str, coefficient: cirq.TParamValComplex) -> str:
+    if is_symengine_expr(coefficient):
+        return str(coefficient)
     if isinstance(coefficient, sympy.Basic):
         printer = _SympyPrinter(format_spec)
         return printer.doprint(coefficient)
@@ -137,8 +140,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
     def fromkeys(cls, vectors, coefficient=0):
         return LinearDict(
             dict.fromkeys(
-                vectors,
-                coefficient if isinstance(coefficient, sympy.Basic) else complex(coefficient),
+                vectors, coefficient if is_symbolic(coefficient) else complex(coefficient)
             )
         )
 
@@ -149,9 +151,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
     def clean(self, *, atol: float = 1e-9) -> Self:
         """Remove terms with coefficients of absolute value atol or less."""
         negligible = [
-            v
-            for v, c in self._terms.items()
-            if not isinstance(c, sympy.Basic) and abs(complex(c)) <= atol
+            v for v, c in self._terms.items() if not is_symbolic(c) and abs(complex(c)) <= atol
         ]
         for v in negligible:
             del self._terms[v]
@@ -181,6 +181,10 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, 'cirq.TParamValComple
                 coefficient = sympy.simplify(coefficient)
                 if coefficient.is_complex:
                     coefficient = complex(coefficient)
+            elif is_symengine_expr(coefficient):
+                resolved = symengine_number_value(coefficient)
+                if resolved is not NotImplemented:
+                    coefficient = resolved
             self[vector] = coefficient
         self.clean(atol=0)
 

@@ -21,6 +21,7 @@ from typing import Any, cast, Protocol, Self, TYPE_CHECKING, TypeVar
 import sympy
 
 from cirq import study
+from cirq._compat_symbolic import is_symbolic, is_symengine_expr
 from cirq._doc import doc_private
 
 if TYPE_CHECKING:
@@ -68,8 +69,9 @@ def is_parameterized(val: Any) -> bool:
     """Returns whether the object is parameterized with any Symbols.
 
     A value is parameterized when it has an `_is_parameterized_` method and
-    that method returns a truthy value, or if the value is an instance of
-    sympy.Basic. Note this covers sympy constants such as `sympy.pi`.
+    that method returns a truthy value, or if the value is a symbolic
+    expression from a supported backend (sympy, or symengine when installed).
+    Note this covers symbolic constants such as `sympy.pi`.
 
     Returns:
         True if the gate has any unresolved Symbols
@@ -77,7 +79,7 @@ def is_parameterized(val: Any) -> bool:
         method above exists or if that method returns NotImplemented,
         this will default to False.
     """
-    if isinstance(val, sympy.Basic):
+    if is_symbolic(val):
         return True
     if isinstance(val, numbers.Number):
         return False
@@ -105,8 +107,8 @@ def parameter_names(val: Any) -> Set[str]:
         does not implement the _parameter_names_ magic method or that method
         returns NotImplemented, returns an empty set.
     """
-    if isinstance(val, sympy.Basic):
-        return {cast(sympy.Symbol, symbol).name for symbol in val.free_symbols}
+    if is_symbolic(val):
+        return {symbol.name for symbol in val.free_symbols}
     if isinstance(val, numbers.Number):
         return set()
     if isinstance(val, (list, tuple)):
@@ -188,9 +190,9 @@ def resolve_parameters(
     if result is not NotImplemented:
         return result
 
-    # Handle special cases for sympy expressions and sequences.
+    # Handle special cases for symbolic expressions and sequences.
     # These may not in fact preserve types, but we pretend they do by casting.
-    if isinstance(val, sympy.Expr):
+    if isinstance(val, sympy.Expr) or is_symengine_expr(val):
         return cast(T, param_resolver.value_of(val, recursive))
     if isinstance(val, (list, tuple)):
         return cast(T, type(val)(resolve_parameters(e, param_resolver, recursive) for e in val))

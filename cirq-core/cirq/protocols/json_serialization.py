@@ -29,6 +29,7 @@ import numpy as np
 import pandas as pd
 import sympy
 
+from cirq._compat_symbolic import is_symengine_expr
 from cirq._doc import doc_private
 
 ObjectFactory = type | Callable[..., Any]
@@ -285,6 +286,11 @@ class CirqEncoder(json.JSONEncoder):
                 return {'cirq_type': 'sympy.E'}
             if o is sympy.EulerGamma:
                 return {'cirq_type': 'sympy.EulerGamma'}
+
+        # Symengine object? Serialized via its string form; symengine.sympify
+        # parses it back on deserialization.
+        if is_symengine_expr(o):
+            return {'cirq_type': 'symengine.Basic', 'expr': str(o)}
 
         # A basic number object?
         if isinstance(o, numbers.Integral):

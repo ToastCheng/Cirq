@@ -17,9 +17,8 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence, Set
 from typing import Any, TYPE_CHECKING
 
-import sympy
-
 from cirq import protocols, value
+from cirq._compat_symbolic import is_symbolic, SymbolicExpr
 from cirq.ops import op_tree, raw_types
 
 if TYPE_CHECKING:
@@ -72,7 +71,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
     def __init__(
         self,
         sub_operation: cirq.Operation,
-        conditions: Sequence[str | cirq.MeasurementKey | cirq.Condition | sympy.Basic],
+        conditions: Sequence[str | cirq.MeasurementKey | cirq.Condition | SymbolicExpr],
     ):
         """Initializes a `ClassicallyControlledOperation`.
 
@@ -104,7 +103,7 @@ class ClassicallyControlledOperation(raw_types.Operation):
                 c = value.MeasurementKey.parse_serialized(c)
             if isinstance(c, value.MeasurementKey):
                 c = value.KeyCondition(c)
-            if isinstance(c, sympy.Basic):
+            if is_symbolic(c):
                 c = value.SympyCondition(c)
             conds.append(c)
         self._conditions: tuple[cirq.Condition, ...] = tuple(conds)

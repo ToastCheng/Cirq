@@ -37,6 +37,7 @@ import sympy
 import cirq
 from cirq import protocols, value
 from cirq._compat import proper_repr
+from cirq._compat_symbolic import symbolic_lib, symbolic_pi
 from cirq._doc import document
 from cirq.ops import (
     control_values as cv,
@@ -56,7 +57,7 @@ imports.
 
 
 def _pi(rads):
-    return sympy.pi if protocols.is_parameterized(rads) else np.pi
+    return symbolic_pi(rads) if protocols.is_parameterized(rads) else np.pi
 
 
 @value.value_equality
@@ -237,7 +238,7 @@ class XPowGate(eigen_gate.EigenGate):
         if self._dimension != 2:
             return NotImplemented  # pragma: no cover
         phase = 1j ** (2 * self._exponent * (self._global_shift + 0.5))
-        lib = sympy if protocols.is_parameterized(self) else np
+        lib = symbolic_lib(self._exponent) if protocols.is_parameterized(self) else np
         angle = lib.pi * self._exponent / 2
         return value.LinearDict({'I': phase * lib.cos(angle), 'X': -1j * phase * lib.sin(angle)})
 
@@ -484,7 +485,7 @@ class YPowGate(eigen_gate.EigenGate):
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         phase = 1j ** (2 * self._exponent * (self._global_shift + 0.5))
-        lib = sympy if protocols.is_parameterized(self) else np
+        lib = symbolic_lib(self._exponent) if protocols.is_parameterized(self) else np
         angle = lib.pi * self._exponent / 2
         return value.LinearDict({'I': phase * lib.cos(angle), 'Y': -1j * phase * lib.sin(angle)})
 
@@ -772,7 +773,7 @@ class ZPowGate(eigen_gate.EigenGate):
         if self._dimension != 2:
             return NotImplemented  # pragma: no cover
         phase = 1j ** (2 * self._exponent * (self._global_shift + 0.5))
-        lib = sympy if protocols.is_parameterized(self) else np
+        lib = symbolic_lib(self._exponent) if protocols.is_parameterized(self) else np
         angle = lib.pi * self._exponent / 2
         return value.LinearDict({'I': phase * lib.cos(angle), 'Z': -1j * phase * lib.sin(angle)})
 

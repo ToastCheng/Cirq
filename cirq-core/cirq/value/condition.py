@@ -23,6 +23,7 @@ import attrs
 import sympy
 
 from cirq._compat import proper_repr
+from cirq._compat_symbolic import is_symbol, symbol_like, SymbolicExpr
 from cirq.protocols import json_serialization, measurement_key_protocol as mkp
 from cirq.value import measurement_key
 
@@ -247,11 +248,15 @@ class BitMaskKeyCondition(Condition):
 
 @dataclasses.dataclass(frozen=True)
 class SympyCondition(Condition):
-    """A classical control condition based on a sympy expression.
+    """A classical control condition based on a symbolic expression.
 
-    This condition resolves to True iff the sympy expression resolves to a
+    This condition resolves to True iff the expression resolves to a
     truthy value (i.e. `bool(x) == True`) when the measurement keys are
     substituted in as the free variables.
+
+    The expression is usually a sympy expression, but symengine expressions
+    are supported as well when the optional `symengine` package is installed
+    (except for bitwise conditions, which require sympy.IndexedBase).
 
     `sympy.IndexedBase` can be used for bitwise conditions. For example, the
     following will create a condition that is controlled by the XOR of the
@@ -260,20 +265,22 @@ class SympyCondition(Condition):
     >>> cond = cirq.SympyCondition(sympy.Xor(a[0], a[1]))
     """
 
-    expr: sympy.Basic
+    expr: SymbolicExpr
 
     @property
     def keys(self):
         return tuple(
             measurement_key.MeasurementKey.parse_serialized(symbol.name)
             for symbol in self.expr.free_symbols
-            if isinstance(symbol, sympy.Symbol)
+            if is_symbol(symbol)
             # For bitwise ops, both Symbol ('a') and Indexed ('a[0]') are returned. We only want to
             # keep the former here.
         )
 
     def replace_key(self, current: cirq.MeasurementKey, replacement: cirq.MeasurementKey):
-        return SympyCondition(self.expr.subs({str(current): sympy.Symbol(str(replacement))}))
+        return SympyCondition(
+            self.expr.subs({str(current): symbol_like(str(replacement), self.expr)})
+        )
 
     def __str__(self):
         return str(self.expr)
@@ -288,7 +295,7 @@ class SympyCondition(Condition):
 
         replacements: dict[str, Any] = {}
         for symbol in self.expr.free_symbols:
-            if isinstance(symbol, sympy.Symbol):
+            if is_symbol(symbol):
                 name = symbol.name
                 key = measurement_key.MeasurementKey.parse_serialized(name)
                 replacements[str(key)] = classical_data.get_int(key)

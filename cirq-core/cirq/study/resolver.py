@@ -25,6 +25,7 @@ import sympy
 from sympy.core import numbers as sympy_numbers
 
 from cirq._compat import proper_repr
+from cirq._compat_symbolic import is_symbol, is_symbolic, is_symengine_expr, symengine_number_value
 from cirq._doc import document
 
 if TYPE_CHECKING:
@@ -93,10 +94,15 @@ class ParamResolver:
                     generate_str_keys = True
                 else:
                     raise TypeError(f'ParamResolver keys cannot be (non-symbol) formulas ({key})')
+            elif is_symengine_expr(key):
+                if is_symbol(key):
+                    generate_str_keys = True
+                else:
+                    raise TypeError(f'ParamResolver keys cannot be (non-symbol) formulas ({key})')
         if generate_str_keys:
             # Remake dictionary with string keys for faster access
             self._param_dict_with_str_keys = {
-                (key.name if isinstance(key, sympy.Symbol) else key): value
+                (key.name if is_symbol(key) else key): value
                 for key, value in self._param_dict.items()
             }
         self._deep_eval_map: ParamDictType = {}
@@ -141,7 +147,7 @@ class ParamResolver:
 
         # Handle string or symbol
         original_value = value
-        if isinstance(value, sympy.Symbol):
+        if is_symbol(value):
             value = value.name
         if isinstance(value, str):
             param_value = self._param_dict_with_str_keys.get(value, _NOT_FOUND)
@@ -149,13 +155,15 @@ class ParamResolver:
                 return param_value
             if param_value is _NOT_FOUND:
                 # Symbol or string cannot be resolved if not in param dict; return as symbol.
+                if is_symbol(original_value):
+                    return original_value
                 return sympy.Symbol(value)
             v = _resolve_value(param_value)
             if v is not NotImplemented:
                 return v
             if isinstance(param_value, str):
                 param_value = sympy.Symbol(param_value)
-            elif not isinstance(param_value, sympy.Basic):
+            elif not is_symbolic(param_value):
                 return original_value
             if recursive:
                 param_value = self._value_of_recursive(value)
@@ -165,6 +173,9 @@ class ParamResolver:
         v = _resolve_value(value)
         if v is not NotImplemented:
             return v
+
+        if is_symengine_expr(value):
+            return self._value_of_symengine(value, recursive)
 
         if not isinstance(value, sympy.Basic):
             # No known way to resolve this variable, return unchanged.
@@ -218,6 +229,32 @@ class ParamResolver:
 
         return self._value_of_recursive(value)
 
+    def _value_of_symengine(self, value: Any, recursive: bool) -> cirq.TParamValComplex:
+        # Resolves a symengine expression natively. symengine.subs accepts
+        # string keys and performs simultaneous substitution in C++, so this
+        # avoids the slow sympy.subs path entirely.
+        subs_dict = {
+            key: val for key, val in self._param_dict_with_str_keys.items() if isinstance(key, str)
+        }
+        v = value.subs(subs_dict)
+        if recursive:
+            # Iterate substitution to a fixpoint so that values that are
+            # themselves formulas are fully resolved, with loop detection
+            # matching the RecursionError behavior of the sympy path.
+            seen = {v}
+            while v.free_symbols:
+                w = v.subs(subs_dict)
+                if w == v:
+                    break
+                if w in seen:
+                    raise RecursionError(f'Evaluation of {value} indirectly contains itself.')
+                seen.add(w)
+                v = w
+        if v.free_symbols:
+            return v
+        resolved = _resolve_value(v)
+        return resolved if resolved is not NotImplemented else v
+
     def _value_of_recursive(self, value: cirq.TParamKey) -> cirq.TParamValComplex:
         # Recursive parameter resolution. We can safely assume that value is a
         # single symbol, since combinations are handled earlier in the method.
@@ -232,7 +269,7 @@ class ParamResolver:
         self._deep_eval_map[value] = _RECURSION_FLAG
 
         v = self.value_of(value, recursive=False)
-        if v == value or (isinstance(v, sympy.Symbol) and v.name == value):
+        if v == value or (is_symbol(v) and v.name == value):
             self._deep_eval_map[value] = v
         else:
             self._deep_eval_map[value] = self.value_of(v, recursive=True)
@@ -310,6 +347,8 @@ def _resolve_value(val: Any) -> Any:
         return val.p / val.q
     if val is sympy.pi:
         return np.pi
+    if is_symengine_expr(val):
+        return symengine_number_value(val)
 
     getter = getattr(val, '_resolved_value_', None)
     result = NotImplemented if getter is None else getter()

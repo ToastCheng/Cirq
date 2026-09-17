@@ -36,6 +36,7 @@ import pandas as pd
 import sympy
 import sympy.printing.repr
 
+from cirq._compat_symbolic import is_symengine_expr
 from cirq._doc import document
 
 ALLOW_DEPRECATION_IN_TEST = 'ALLOW_DEPRECATION_IN_TEST'
@@ -132,7 +133,7 @@ def _method_cache_name(func: Callable) -> str:
 
 
 def proper_repr(value: Any) -> str:
-    """Overrides sympy and numpy returning repr strings that don't parse."""
+    """Overrides sympy, symengine, and numpy returning repr strings that don't parse."""
 
     if isinstance(value, sympy.Basic):
         # HACK: work around https://github.com/sympy/sympy/issues/16074
@@ -168,6 +169,9 @@ def proper_repr(value: Any) -> str:
                 return s
 
         return Printer().doprint(value)
+
+    if is_symengine_expr(value):
+        return f'symengine.sympify({str(value)!r})'
 
     if isinstance(value, np.ndarray):
         return f'np.array({value.tolist()!r}, dtype=np.{value.dtype!r})'

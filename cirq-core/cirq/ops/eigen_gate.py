@@ -23,9 +23,9 @@ from types import NotImplementedType
 from typing import Any, cast, NamedTuple, TYPE_CHECKING
 
 import numpy as np
-import sympy
 
 from cirq import protocols, value
+from cirq._compat_symbolic import is_symbolic, symbolic_pi
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:
@@ -173,7 +173,7 @@ class EigenGate(raw_types.Gate):
             formatted according to style described by args.
         """
         exponent = self._diagram_exponent(args)
-        pi = sympy.pi if protocols.is_parameterized(exponent) else np.pi
+        pi = symbolic_pi(exponent) if protocols.is_parameterized(exponent) else np.pi
         return args.format_radians(radians=2 * pi * exponent / order)
 
     # virtual method
@@ -278,7 +278,7 @@ class EigenGate(raw_types.Gate):
         `PhasedISwapPowGate`, this must be overridden to provide the additional
         fields that affect the eigenspaces.
         """
-        symbolic = lambda x: isinstance(x, sympy.Expr) and x.free_symbols
+        symbolic = lambda x: is_symbolic(x) and x.free_symbols
         f = lambda x: x if symbolic(x) else float(x)
         shifts = (f(self._exponent) * f(self._global_shift + e) for e in self._eigen_shifts())
         return tuple(s if symbolic(s) else value.PeriodicValue(f(s), 2) for s in shifts)

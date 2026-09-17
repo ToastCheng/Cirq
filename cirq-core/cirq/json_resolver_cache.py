@@ -101,7 +101,7 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
 
     import sympy
 
-    return {
+    resolvers = {
         'AmplitudeDampingChannel': cirq.AmplitudeDampingChannel,
         'AnyIntegerPowerGateFamily': cirq.AnyIntegerPowerGateFamily,
         'AnyUnitaryGateFamily': cirq.AnyUnitaryGateFamily,
@@ -293,3 +293,13 @@ def _class_resolver_dictionary() -> dict[str, ObjectFactory]:
         'complex': complex,
         'datetime.datetime': _datetime,
     }
+
+    from cirq._compat_symbolic import HAVE_SYMENGINE
+
+    if HAVE_SYMENGINE:
+        import symengine
+
+        # Symengine expressions serialize as their string form and parse back.
+        resolvers['symengine.Basic'] = lambda expr: symengine.sympify(expr)
+
+    return resolvers

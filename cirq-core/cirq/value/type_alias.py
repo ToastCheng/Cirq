@@ -15,18 +15,18 @@
 from __future__ import annotations
 
 import numpy as np
-import sympy
 
+from cirq._compat_symbolic import SymbolicExpr
 from cirq._doc import document
 
 """Supply aliases for commonly used types.
 """
 
-TParamKey = str | sympy.Expr
+TParamKey = str | SymbolicExpr
 document(TParamKey, """A parameter that a parameter resolver may map to a value.""")
 
-TParamVal = float | sympy.Expr
+TParamVal = float | SymbolicExpr
 document(TParamVal, """A value that a parameter resolver may return for a parameter.""")
 
-TParamValComplex = complex | np.number | sympy.Expr
+TParamValComplex = complex | np.number | SymbolicExpr
 document(TParamValComplex, """A complex value that parameter resolvers may use for parameters.""")
