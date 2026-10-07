@@ -25,6 +25,7 @@ import sympy
 from sympy.core import numbers as sympy_numbers
 
 from cirq._compat import proper_repr
+from cirq._compat_symbolic import HAVE_SYMENGINE, resolve_via_symengine
 from cirq._doc import document
 
 if TYPE_CHECKING:
@@ -193,6 +194,11 @@ class ParamResolver:
             if isinstance(base, numbers.Number):
                 return np.float_power(cast(complex, base), cast(complex, exponent))
             return np.power(cast(complex, base), cast(complex, exponent))
+
+        if HAVE_SYMENGINE:
+            resolved = resolve_via_symengine(value, self._param_dict_with_str_keys, recursive)
+            if resolved is not NotImplemented:
+                return resolved
 
         # Input is either a SymPy formula or the dictionary maps to a
         # formula.  Use SymPy to resolve the value.

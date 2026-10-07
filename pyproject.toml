@@ -119,6 +119,7 @@ module = [
     "scipy.*",
     "setuptools.*",
     "stimcirq.*",
+    "symengine.*",
     "sympy.*",
     "tensorflow_docs.*",
     "tqdm.*",
